@@ -1,0 +1,408 @@
+---
+title: "Descriptive Analysis of Supported and Rejected Grants Applications in Russia, 1994-2016"
+subtitle: Elena Chechik, European University at St.Petersburg
+---
+
+```{r setup}
+#| include=FALSE
+knitr::opts_chunk$set(echo = FALSE,  warning = FALSE, message =  FALSE)  
+```
+
+```{r function}
+pvalue <- function(x, ...) {
+    # Construct vectors of data y, and groups (strata) g
+    y <- unlist(x)
+    g <- factor(rep(1:length(x), times=sapply(x, length)))
+    if (is.numeric(y)) {
+        # For numeric variables, perform a standard 2-sample t-test
+        p <- t.test(y ~ g)$p.value
+    } else {
+        # For categorical variables, perform a chi-squared test of independence
+        p <- chisq.test(table(y, g),correct = TRUE, simulate.p.value = TRUE, B = 10000)$p.value
+    }
+    # Format the p-value, using an HTML entity for the less-than sign.
+    # The initial empty string places the output on the line below the variable label.
+    c("", sub("<", "&lt;", format.pval(p, digits=3, eps=0.001)))
+}
+all_test <- function(x, ...) {
+    # Construct vectors of data y, and groups (strata) g
+    y <- unlist(x)
+    g <- factor(rep(1:length(x), times=sapply(x, length)))
+    if (is.numeric(y)) {
+        # For numeric variables, perform a standard 2-sample t-test
+        p <- t.test(y ~ g)$p.value
+        t <- t.test(y ~ g)$statistic
+        par <- t.test(y ~ g)$parameter
+    } else {
+        # For categorical variables, perform a chi-squared test of independence
+        p <- chisq.test(table(y, g))$p.value
+        t <- chisq.test(table(y, g))$statistic
+        par <- chisq.test(table(y, g))$parameter
+    }
+    # Format the p-value, using an HTML entity for the less-than sign.
+    # The initial empty string places the output on the line below the variable label.
+    c("", paste0(sub("<", "&lt;", format.pval(p, digits=3, eps=0.001)), "; val test stat = " , round(t, digits=3), "; df =" , round(par, digits=3)))
+}
+```
+
+```{r packs}
+library(readr)
+library(tidyr)
+library(tidyverse)
+library(DT) 
+library(table1)
+library(tidyquant)
+library(plotly)
+library(kableExtra)
+library(ggsignif)
+```
+
+```{r data}
+rffi1 <- read_csv("data/rffi1.csv")
+col1 <- c('#efaa43', '#a4a4a4')
+col2 <- c('#bf9be4', '#b6dc80')
+```
+
+## Introduction
+
+This paper conducts an analysis of grant application data from the Russian Foundation for Basic Research (RFBR) between 1994 and 2016. The RFBR is a government-funded organization that financially supports a wide range of projects in the fields of STEM as well as the humanities and social sciences. The data analyzed in this study includes over 400,000 grant applications (both supported and rejected) and covers eight main research areas as defined by the RFBR.
+
+The goal of this study is to examine the representation of women in the grant application process, including the number of applications submitted, acceptance rates, and the representation of women in different research fields. Additionally, the study aims to explore any trends or patterns in the data that may reveal potential barriers for women in the grant application process.
+
+Gender inequality in the fields of STEM has been a topic of significant concern in recent years. Studies have shown that women are underrepresented in STEM fields, and that they face numerous barriers to career advancement and funding opportunities. This study aims to contribute to the existing body of research by providing a detailed analysis of grant application data from a large government-funded organization in Russia.
+
+In addition, this study also aims to explore the representation of women in the Humanities & Social Sciences fields and the acceptance rates of grant applications in these areas. This is important because the lack of representation of women in the field of Humanities & Social Sciences can also have a significant impact on the field itself, as well as on society as a whole.
+
+Despite the lack of specific studies on the representation of women in grant application processes in Russia, research conducted in other countries has revealed patterns of underrepresentation of women in STEM fields and in grant application processes. These findings suggest a need for further research on the barriers faced by women in the grant application process in Russia and the development of strategies to address these barriers and promote gender equity.
+
+## Data
+
+I have scraped over 400,000 grant applications (both supported and rejected) from 1994 to 2016 from the RFBR website. The RFBR financially sponsors a variety of projects, including conferences, research, equipment, and publishing. There are eight main research areas for RFBR grants, with *Biology & Medical Sciences* and *Physics & Astronomy* being the most popular, accounting for 21% and 20% of all grant applications respectively for the period 1995-2016 (see Table 1). Overall, the majority of applications are in STEM fields, with *Humanities & Social Sciences* making up only 6.4% of applications.
+
+###### Table 1: Number of grant applications by field
+
+```{r}
+Tab_1 <- table1(~ area_name, data = rffi1)
+
+Tab_1 <- as.data.frame(Tab_1)[-1, ]
+Tab_1 <- Tab_1[-1, ]
+rownames(Tab_1) <- NULL
+
+kable(Tab_1,
+      align = c("l","c"),
+      col.names = c("Field","Overall<br/> (N=409715)"),
+      escape = FALSE) %>% 
+  kable_styling(full_width = F, position = "center", font_size = 14)
+  
+```
+
+To determine the gender of the grant applicants, I used gender-specific endings of last names for 80% of the applicants. Male-specific endings include *"-ов", "-ий", "-ин", "-ев", "-ый"*, while female-specific endings include *"-ва", "-ая", "-на"*. With this method, we were able to identify the gender of 326,661 grant applicants, of which 75.5% were male and 24.5% were female.
+
+###### Table 2: Number of grant applications by gender
+
+```{r}
+Tab_1 <- table1(~ gender, data = rffi1)
+
+Tab_1 <- as.data.frame(Tab_1)[-1, ]
+Tab_1 <- Tab_1[-1, ]
+rownames(Tab_1) <- NULL
+
+kable(Tab_1,
+      align = c("l","c"),
+      col.names = c("Gender","Overall<br/> (N=409715)"),
+      escape = FALSE) %>% 
+  kable_styling(full_width = F, position = "center", font_size = 14) 
+
+```
+
+## Results
+
+In Fig. 1, we see that the number of grant applications (supported and rejected) ranged from a maximum in 1996 (26,518 applications) to a minimum in 2000 (12,830 applications). At the same time, the acceptance rate throughout the entire period was below 50% (with the exception of 2001, where the acceptance rate was 51.7%).
+
+###### Fig 1: Number of grant applications by year
+
+```{r}
+#| fig.dim = c(8.5, 5)
+
+p <- rffi1 %>% group_by(proj_year) %>% count() %>% 
+  ggplot(aes(proj_year, n)) +
+  geom_col(color = "white", width = 0.9) +
+  scale_y_continuous(breaks = c(0, 5000, 10000, 15000, 20000, 25000)) +
+  scale_x_continuous(breaks = c(1995, 2000, 2005, 2010, 2015)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0, vjust=0.5),
+        axis.title = element_blank(),
+        panel.grid = element_blank(),
+        panel.grid.major.y = element_line(size=0.1, color = "grey70", linetype = "solid"))
+
+p1 <- rffi1 %>% 
+  mutate(statuse_project = factor(statuse_project, levels = c("rejected","accepted"))) %>% 
+  group_by(proj_year, statuse_project) %>% count %>% 
+  ungroup() %>% 
+  group_by(proj_year) %>% mutate(sh = round(100 * n / sum(n), digits = 2)) %>% ungroup() %>% 
+  ggplot() +
+  geom_col(aes(x = proj_year, y = sh, fill = statuse_project), 
+           color = "white", width = 0.9, position="fill") + 
+  geom_hline(yintercept=0.5, linetype='dashed', size = 0.2,  col = 'black') +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(breaks = c(1995, 2000, 2005, 2010, 2015)) +
+  labs(fill = "") +
+  scale_fill_manual(values = col2) +
+  theme_bw() +
+  theme(axis.text.y = element_text(angle = 90, vjust=0.5),
+        legend.title = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+subplot(ggplotly(p), ggplotly(p1))
+```
+
+Fig. 2 shows that the number of applications submitted by women is consistently lower than that of men. Women submitted fewer than 5,000 applications annually, with the exception of 2014 and 2016. Men, on the other hand, averaged 10,727 applications per year from 1994-2016. Despite this, the proportion of female applications has steadily increased over the period under review. In 2016, the proportion of female applications was 31.8%, compared to 17.2% in 1994.
+
+###### Fig 2: Number of grant applications by year and gender
+
+```{r}
+#| fig.dim = c(8.5, 5)
+
+p <- rffi1 %>% filter(gender != "unknown") %>% 
+  group_by(proj_year, gender) %>% count %>% 
+  # group_by(gender) %>% summarise(mean(n))
+  ggplot() +
+  geom_col(aes(x = proj_year, y = n, fill = gender), 
+           position = "dodge", color = "white", width = 1.1)+
+  scale_fill_manual(values = col1) +
+  scale_x_continuous(breaks = c(1995, 2000, 2005, 2010, 2015)) +
+  labs(y = "Number of applications") +
+  theme_bw() +
+  theme(legend.title = element_blank(),
+        legend.position = "top",
+        axis.title.x = element_blank(),
+        panel.grid = element_blank(), 
+        panel.grid.major.y = element_line(size=0.1, color = "grey70", linetype = "solid"))
+
+p1 <- rffi1 %>% filter(gender != "unknown") %>% 
+  group_by(proj_year, gender) %>% count %>% 
+  ungroup() %>% 
+  group_by(proj_year) %>% mutate(sh = round(100 * n / sum(n), digits = 2)) %>% ungroup() %>% 
+  ggplot() +
+  geom_col(aes(x = proj_year, y = sh, fill = gender), 
+           color = "white", width = 0.9,
+           position = position_fill(reverse = TRUE)) + 
+  geom_hline(yintercept=0.5, linetype='dashed', size = 0.2, col = 'black') +
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(breaks = c(1995, 2000, 2005, 2010, 2015)) +
+  scale_fill_manual(values = col1) +
+  labs(fill = "") +
+  theme_bw() +
+  theme(axis.text.y = element_text(angle = 90, vjust=0.5),
+        legend.title = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) 
+  
+subplot(style(ggplotly(p),showlegend = F), ggplotly(p1))
+```
+
+Fig. 3 illustrates the changes in the share of grant applications in various fields of science between 1994 and 2016. The data shows that *Engineering* emerged as a separate field in 2005, possibly as a result of separation from *Physics & Astronomy* and *Earth Sciences*, which exhibit a decline in their share of grant applications. Additionally, there is an increase in the share of applications in the *IT* field, possibly due to a redistribution from *Math & Computer Science*, which also demonstrates a decrease in its share. In contrast, *Biology & Medical Sciences*, *Chemistry*, and *Humanities & Social Sciences* have a stable share throughout the period.
+
+###### Fig 3: Grants by research fields
+
+```{r}
+p <- rffi1 %>% 
+  group_by(proj_year, area_name) %>% count %>% ungroup() %>% 
+  group_by(proj_year) %>% mutate(sh = round(100 * n / sum(n), digits = 2)) %>% ungroup() %>% 
+  ggplot() +
+  geom_col(aes(x = proj_year, y = sh, fill = area_name), 
+           color = "white", width = 0.9, position="fill")+ 
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(breaks = c(1995, 2000, 2005, 2010, 2015)) +
+  labs(fill = "") +
+  scale_fill_brewer(palette = "Paired") +
+  theme_bw() +
+  theme(legend.title = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +  
+  guides(fill = guide_legend(reverse=TRUE)) 
+
+ggplotly(p)
+```
+
+Fig. 4 illustrates the trend of increasing female representation in grant applications across all science fields. The highest proportion of female applications is observed in *Humanities & Social Sciences*, with a steady increase from 30% in the 1990s to 50% at the end of the period. Similarly, *Biology & Medical Sciences* also demonstrates an increase from 30% at the start of the period to gender parity at the end. On the other hand, *Physics & Astronomy* has the lowest proportion of female applications, with a gradual increase from 7% in 1994 to 16.5% in 2016.
+
+###### Fig 4: Share of women among grant applicants by fields
+
+```{r}
+#| fig.dim = c(12, 7.5)
+
+p <- rffi1 %>% 
+  filter(gender != "unknown") %>% 
+  group_by(proj_year, gender, area_name) %>% count %>% ungroup() %>% 
+  group_by(proj_year,area_name) %>% mutate(sh = round(100 * n / sum(n), digits = 2)) %>% ungroup() %>% 
+  ggplot() +
+  geom_col(aes(x = proj_year, y = sh, group = area_name, fill = gender), 
+           color = "white", width = 1, position="fill") +
+  geom_hline(yintercept=0.5, linetype='dashed', size = 0.2, col = 'black') +
+  facet_wrap(~area_name, nrow = 2) + 
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_continuous(breaks = c(1995, 2000, 2005, 2010, 2015)) +
+  scale_fill_manual(values = col1) +
+  theme_bw() +
+  theme(legend.title = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "bottom",
+        axis.text.x = element_text(angle = 90, vjust = 0.5),
+        strip.background = element_rect(fill = NA), 
+        strip.text = element_text(colour = 'black', size = 7)) 
+
+ggplotly(p)
+```
+
+```{r tab_sgn}
+#| eval=FALSE
+
+df <- rffi1 %>% filter(gender != "unknown") %>% 
+  filter(area_name != "NA") %>% mutate(id = row_number()) %>% 
+  select(id, gender, area_name, statuse_project) %>% 
+  pivot_wider(names_from = area_name, values_from = statuse_project)
+
+table1(~`Math & Сomputer Science` +
+         `Physics & Astronomy` + 
+         `Chemistry & Material Sciences` + 
+         `Biology & Medical Sciences` + 
+         `Earth Sciences` + 
+         `Humanities & Social Sciences` + 
+         `IT` + 
+         `Engineering` | gender, data = df,
+          overall = FALSE,
+          extra.col=list(`P-value`= pvalue,
+                         `all-value`= all_test))
+```
+
+Fig. 5 examines the proportion of approved applications for women and men in different fields. The data indicates that men have a higher share of won applications in *Math & Computer Science*, with 45.1% of applications submitted by men being approved. However, only 37.2% of applications submitted by women are approved in this field (p-value \<0.001, chi-squared test). The data also shows that in most fields, women have a significantly lower share of approved applications than men, with the largest gap observed in *IT* and *Humanities & Social Sciences*. The only field where the gap is not significant is *Engineering*, with both women and men having an equal share of approved applications.
+
+###### Fig 5: Share of supported applications by gender
+
+```{r}
+
+sgnf = data.frame(x = c(0.7, 1.7, 2.7, 3.7, 4.7, 5.7, 6.7, 7.7),
+                  xend = c(1.3, 2.3, 3.3, 4.3, 5.3, 6.3, 7.3, 8.3),
+                  y = rep(49, 8),
+                  annot = c("***", "***", "**", "***", "***", "***", "***", "NS."))
+
+lvls <- rffi1 %>% filter(gender != "unknown") %>% 
+  filter(area_name != "NA") %>% 
+  group_by(gender, area_name, statuse_project) %>% count() %>% 
+  ungroup() %>% group_by(gender, area_name) %>% 
+  mutate(sh = round(100 * n / sum(n), digits = 2)) %>% filter(statuse_project == "accepted") %>% 
+  filter(gender == "male") %>% arrange(desc(sh))
+
+lvls <- as.character(lvls$area_name)
+
+gap <- rffi1 %>% 
+  filter(gender != "unknown") %>% 
+  filter(area_name != "NA") %>% 
+  group_by(gender, area_name, statuse_project) %>% count() %>% 
+  ungroup() %>% group_by(gender, area_name) %>% 
+  mutate(sh = round(100 * n / sum(n), digits = 1)) %>% filter(statuse_project == "accepted") %>% 
+  select(gender,area_name,sh) %>% 
+  pivot_wider(names_from = gender, values_from = sh) %>% 
+  mutate(gap = male - female)
+
+rffi1 %>% 
+  filter(gender != "unknown") %>% 
+  filter(area_name != "NA") %>% 
+  group_by(gender, area_name, statuse_project) %>% count() %>% 
+  ungroup() %>% group_by(gender, area_name) %>% 
+  mutate(sh = round(100 * n / sum(n), digits = 1)) %>% filter(statuse_project == "accepted") %>% 
+  mutate(area_name = factor(area_name, levels = lvls)) %>% 
+  ggplot() +
+  geom_col(aes(x = area_name, y = sh, fill = gender), 
+           position = "dodge", width = 0.8,  color = 'white')+
+  geom_text(aes(x = area_name, y = sh + 1, group = gender, label = sh), 
+            position = position_dodge(width = .9), size = 2.7) +
+  # geom_text(data = gap, aes(x = area_name, y = female - 2, label = gap),
+  #           size = 2.7) +
+  geom_segment(data = sgnf,
+               aes(x = x, xend = xend, y = y, yend = y), size = 0.3) +
+  geom_text(data = sgnf, 
+             aes(label = annot, x = (xend + x) / 2, y = y + 2),  size = 3) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
+  scale_fill_manual(values = col1) +
+  labs(fill = "",
+       y = "Share of supported applications (%)",
+       caption = "\nPearson's Chi-squared test; NS. — not significant, * — p < 0.05, ** — p < 0.01, *** — p < 0.001") +
+  theme_bw() +
+  theme(legend.title = element_blank(),
+        axis.title.x = element_blank(),
+        plot.caption = element_text(size = 8, hjust = -0, face = "italic", color = "black"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        legend.position = "top") 
+
+```
+
+Fig. 6 illustrates the phenomenon of "nepotism" in favor of women in *Engineering*, where the share of women who have won applications is higher than the share of applications that men won. Additionally, *Physics & Astronomy* also exhibits a trend of "nepotism" in favor of women in some years. In all other fields, the trend of "nepotism" is in favor of men, which is consistent and observed annually.
+
+###### Fig 6: Difference in the share of supported grant applications between men and women
+
+```{r}
+#| fig.dim = c(12, 7.5)
+
+p <- rffi1 %>% 
+  filter(gender != "unknown") %>% 
+  filter(area_name != "NA") %>% 
+  group_by(proj_year, gender, area_name, statuse_project) %>% count() %>% 
+  ungroup() %>% group_by(proj_year, gender, area_name) %>% 
+  mutate(sh = 100 * n / sum(n)) %>% filter(statuse_project == "accepted") %>% 
+  select(-n) %>% 
+  pivot_wider(names_from = gender, values_from = sh) %>% 
+  mutate(gap = round(male - female, digits = 2),
+         color = case_when(gap > 0 ~ "men",
+                           gap == 0 ~ "equal",
+                           TRUE ~ "women")) %>% 
+  ggplot() +
+  geom_hline(yintercept = 0, linetype = 'dashed', col = 'black', size = 0.2) +
+  geom_point(aes(x = proj_year, y = gap, color = color), size = 1) +
+  geom_segment(aes(x = proj_year, xend = proj_year,
+                   y = 0, yend = gap,
+                   color = color)) + 
+  facet_wrap( ~ area_name, nrow = 2) +
+  scale_color_manual(values = col2) +
+  scale_x_continuous(breaks = c(1995, 2000, 2005, 2010, 2015)) +
+  labs(y = "Gap (pp)", color = "Мore supported:") +
+  theme_bw() +
+  theme(legend.title = element_blank(),
+        axis.title.x = element_blank(),
+        strip.background = element_rect(fill = NA),
+        strip.text = element_text(colour = 'black', size = 7),
+        axis.text.x = element_text(angle = 90, vjust = 0.5),
+        legend.position = "top") 
+
+ggplotly(p)
+```
+
+## Conclusions and Research Direction
+
+In conclusion, the majority of grants are awarded in STEM fields, with *Humanities & Social Sciences* representing only 6.4% of all grant applications between 1994 and 2016 (Tab 1). The data also shows that only 24.5% of applicants are women (Tab 2), but there is a consistent increase in the share of female applications, from 17.2% to 31.8% over the period (Fig 2). Gender parity in applications is achieved in two fields - *Humanities & Social Sciences* and *Biology & Medicine* (Fig 4). In all other areas, the proportion of female applications is significantly lower, however, there is a trend towards greater parity.
+
+With regards to the approval of grants, men have a higher chance of winning in all fields except *Engineering*. The highest difference in the share of approved applications in favor of men is observed in *IT* and *Humanities & Social Sciences* (Fig 5). This difference is observed not only in most fields but also over most years. The exceptions are *Engineering* and *Physics & Astronomy*, where there are instances of "nepotism" in favor of women by some years (Fig 6). It is worth noting that when the word **nepotism** is used in this paper, it refers to the difference in the share of approved applications. The characteristics of applicants are not known, and it is possible that female applications are objectively worse in most fields for most years, which could explain the higher approval rate for men.
+
+From the data, **three types of fields** can be distinguished:
+
+1)  *Physics & Astronomy and Engineering*: relatively balanced fields concerning the chances of approving female applications. The proportion of female applications in these fields is still very low, but there is a stable increase in the share of female applications.
+
+2)  *Humanities & Social Sciences and Biology & Medicine*: the share of female applications is comparable to the share of male applications. However, the share of applications approved for men is higher than the share of applications approved for women.
+
+3)  In all other fields, the share of female applications is low (although increasing over the years), and men win applications relatively more often than women.
+
+A **possible direction for further research** would be to investigate the grant type -- for young scientists, for conferences, for publishing books, etc. and to gather more information from this variable, such as the maximum grant payment or the minimum requirements for applicants, such as degree, position.
+
+<br/>
