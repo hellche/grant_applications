@@ -1,4 +1,5 @@
-Descriptive Analysis of Approved and Rejected Grants in Russia, 1994-2016
+## Descriptive Analysis of Supported and Rejected Grants Applications in Russia, 1994-2016
+
 Page: https://hellche.github.io/grant_applications/
 
 Data: Russian Foundation for Basic Research (RFBR)
