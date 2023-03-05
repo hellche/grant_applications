@@ -65,8 +65,6 @@ col2 <- c('#bf9be4', '#b6dc80')
 
 ## Introduction
 
-<md-button class="md-raised md-cornered">Button</md-button>
-
 This paper conducts an analysis of grant application data from the Russian Foundation for Basic Research (RFBR) between 1994 and 2016. The RFBR supports projects in the STEM fields, Social Sciences and Humanities. The data analyzed in this study includes over 400,000 grant applications (both supported and rejected) and covers eight main research fields.
 
 The goal of this study is to examine the representation of women in the grant application process, including the number of applications submitted, acceptance rates, and the representation of women in different research fields. Additionally, the study aims to explore any trends or patterns in the data that may reveal potential barriers for women in the grant application process.
