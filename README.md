@@ -4,4 +4,4 @@ Page: https://hellche.github.io/grant_applications/
 
 Data: Russian Foundation for Basic Research (RFBR)
 
-[ru] example of applicant's card: https://www.rfbr.ru/rffi/ru/project_search/o_1910847
+\[ru\] example of applicant's card: https://www.rfbr.ru/rffi/ru/project_search/o_1910847
