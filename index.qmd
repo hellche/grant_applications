@@ -1,0 +1,251 @@
+---
+title: "STI 2023 Poster Paper"
+author: "Elena Chechik"
+org: "Center for Institutional Analysis of Science & Education European University at St. Petersburg"
+---
+
+# Uncovering Barriers for Women in Russian Grant Funding: Rejected and Supported Grant Applications
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,  warning = FALSE, message =  FALSE)
+```
+
+```{r packages}
+library(tidyverse)
+library(table1)
+library(DT)
+library(kableExtra)
+
+# library(table1)
+# library(sjlabelled)
+# library(ggpubr)
+# library(ggridges)
+# library(ggsignif)
+# library(patchwork)
+# library(expss)
+# library(FactoMineR)
+# library(factoextra)
+# library(RColorBrewer)
+# library(stringr)
+# library(stringi)
+# library(tibble)
+# library(ggpmisc)
+# library(readxl)
+# library(DT)
+# library(wesanderson)
+# library(likert)
+# library(ggrepel)
+# library(kableExtra)
+```
+
+```{r pallets}
+col_gender <- c("#ffe043","#b3b3b3")
+col_gender2 <- c("#b3b3b3","#ffe043")
+col_gender3 <- c("#b3b3b3","#ffe043", "#91C45A")
+col_gap <- c("#91C45A","#C19AD6")
+```
+
+```{r data}
+grants_data <- read.csv(url("https://osf.io/qm2ez/download")) %>%
+  filter(area_name != "unknown") %>%
+  mutate(area_name = case_when(area_name == "IT" ~ "Information Technology",
+                               TRUE ~ area_name))
+
+```
+
+## Table S1. Gender assignment and number of grant applications by gender.
+
+```{r}
+#| fig-align: 'center'
+
+Tab_1 <- table1(~ gender, data = grants_data)
+
+Tab_1 <- as.data.frame(Tab_1)[-1, ]
+Tab_1 <- Tab_1[-1, ]
+rownames(Tab_1) <- NULL
+
+kable(Tab_1,
+      align = c("l","c"),
+      col.names = c("Field","Overall<br/> (N=409715)"),
+      escape = FALSE) %>% 
+  kable_styling(full_width = F, position = "center", font_size = 12)
+  
+```
+
+**Gender assignment.** Female-specific endings of family names include *"-ва", "-ая", "-на"*. Male-specific endings of family names include *"-ов", "-ий", "-ин", "-ев", "-ый."*
+
+<br /> 
+
+## Figure S1. Gender assignment and number of grant applications by gender.
+
+### Non-Event/Pubs Goals
+
+```{r, fig.dim = c(10, 3.6)}
+#| fig-align: 'center'
+
+equal <- grants_data %>% 
+  #filter(proj_year >= 2005) %>% 
+  filter(area_name != "unknown") %>% 
+  filter(gender != "unknown") %>% 
+  mutate(status2 = case_when(status == "not young no pubs/events" ~ "Non-Event/Pubs\nGoals",
+                             status == "young no pubs/events" ~ "Non-Event/Pubs\nGoals",
+                             status == "not young pubs/events" ~ "Event/Pubs\nGoals",
+                             TRUE ~ "Event/Pubs\nGoals")) %>% 
+  mutate(status3 = case_when(status == "not young no pubs/events" ~ "Non-Early Career PI",
+                             status == "young no pubs/events" ~ "Early Career PI",
+                             status == "not young pubs/events" ~ "Non-Early Career PI",
+                             TRUE ~ "Early Career PI")) %>% 
+  filter(status2 == "Non-Event/Pubs\nGoals") %>% 
+  
+  group_by(proj_year, status3, gender, area_name, statuse_project) %>% count() %>% ungroup() %>%
+  group_by(proj_year, status3, gender, area_name) %>% 
+  mutate(sh = 100 * n / sum(n)) %>% 
+  filter(statuse_project == "accepted") %>% 
+  select(-n) %>% 
+  pivot_wider(names_from = gender, values_from = sh) %>% 
+  mutate(gap = round(male - female, digits = 2),
+         color = case_when(gap > 0 ~ "'nepotism' in favor of men",
+                           gap == 0 ~ "equal",
+                           TRUE ~ "'nepotism' in favor of women")) %>% ungroup() %>% 
+  filter(color == "equal")
+
+  
+grants_data %>% 
+  #filter(proj_year >= 2005) %>% 
+  filter(area_name != "unknown") %>% 
+  filter(gender != "unknown") %>% 
+  mutate(status2 = case_when(status == "not young no pubs/events" ~ "Non-Event/Pubs\nGoals",
+                             status == "young no pubs/events" ~ "Non-Event/Pubs\nGoals",
+                             status == "not young pubs/events" ~ "Event/Pubs\nGoals",
+                             TRUE ~ "Event/Pubs\nGoals")) %>% 
+  mutate(status3 = case_when(status == "not young no pubs/events" ~ "Non-Early Career PI",
+                             status == "young no pubs/events" ~ "Early Career PI",
+                             status == "not young pubs/events" ~ "Non-Early Career PI",
+                             TRUE ~ "Early Career PI")) %>% 
+  filter(status2 == "Non-Event/Pubs\nGoals") %>% 
+  
+  group_by(proj_year, status3, gender, area_name, statuse_project) %>% count() %>% ungroup() %>%
+  group_by(proj_year, status3, gender, area_name) %>% 
+  mutate(sh = 100 * n / sum(n)) %>% 
+  filter(statuse_project == "accepted") %>% 
+  select(-n) %>% 
+  pivot_wider(names_from = gender, values_from = sh) %>% 
+  mutate(gap = round(male - female, digits = 2),
+         color = case_when(gap > 0 ~ "gender gap in favor of men",
+                           gap == 0 ~ "equal",
+                           TRUE ~ "gender gap in favor of women")) %>% ungroup() %>% 
+  mutate(color = factor(color, levels = c("gender gap in favor of men", 
+                                          "gender gap in favor of women",
+                                          "equal"))) %>% 
+  
+  ggplot() +
+  geom_hline(yintercept = 0, linetype = 'solid', col = 'black', size = 0.2) +
+  geom_col(aes(x = proj_year, y = gap, fill = color), color = "black", size = 0.1) + 
+  geom_point(data = equal, aes(x = proj_year, y = gap, fill = color), 
+             color = "#91C45A", size = 1.2, shape = 22, show.legend = F) + 
+  #geom_point(data = tibble(x = c(2006, 2006), y = c(-50, 50)), aes(x, y), color = "white") +
+  facet_grid(status3 ~ area_name, labeller = label_wrap_gen(20)) +
+  scale_fill_manual(values = col_gender3) +
+  scale_x_continuous(breaks = c(1995, 2005, 2015)) +
+  #scale_y_continuous(breaks = c(-40, -20, 0, 20, 40)) +
+  labs(y = "Gender Gap (pp)", color = "Мore supported:") +
+  theme_bw() +
+  theme(legend.title = element_blank(),
+        legend.position = "top",
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 8),
+        axis.text.x = element_text(size = 8, angle = 0, vjust = 0.5),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill = NA), 
+        strip.text = element_text(colour = 'black', size = 8))
+   
+```
+
+### Event/Pubs Goals
+
+```{r, fig.dim = c(10, 3.6)}
+#| fig-align: 'center'
+
+equal <- grants_data %>% 
+  filter(proj_year >= 2005) %>% 
+  filter(area_name != "unknown") %>% 
+  filter(gender != "unknown") %>% 
+  mutate(status2 = case_when(status == "not young no pubs/events" ~ "Non-Event/Pubs\nGoals",
+                             status == "young no pubs/events" ~ "Non-Event/Pubs\nGoals",
+                             status == "not young pubs/events" ~ "Event/Pubs\nGoals",
+                             TRUE ~ "Event/Pubs\nGoals")) %>% 
+  mutate(status3 = case_when(status == "not young no pubs/events" ~ "Non-Early Career PI",
+                             status == "young no pubs/events" ~ "Early Career PI",
+                             status == "not young pubs/events" ~ "Non-Early Career PI",
+                             TRUE ~ "Early Career PI")) %>% 
+  filter(status2 == "Event/Pubs\nGoals") %>% 
+  
+  group_by(proj_year, status3, gender, area_name, statuse_project) %>% count() %>% ungroup() %>%
+  group_by(proj_year, status3, gender, area_name) %>% 
+  mutate(sh = 100 * n / sum(n)) %>% 
+  filter(statuse_project == "accepted") %>% 
+  select(-n) %>% 
+  pivot_wider(names_from = gender, values_from = sh) %>% 
+  mutate(gap = round(male - female, digits = 2),
+         color = case_when(gap > 0 ~ "'nepotism' in favor of men",
+                           gap == 0 ~ "equal",
+                           TRUE ~ "'nepotism' in favor of women")) %>% ungroup() %>% 
+  filter(color == "equal")
+
+  
+grants_data %>% 
+  filter(proj_year >= 2005) %>% 
+  filter(area_name != "unknown") %>% 
+  filter(gender != "unknown") %>% 
+  mutate(status2 = case_when(status == "not young no pubs/events" ~ "Non-Event/Pubs\nGoals",
+                             status == "young no pubs/events" ~ "Non-Event/Pubs\nGoals",
+                             status == "not young pubs/events" ~ "Event/Pubs\nGoals",
+                             TRUE ~ "Event/Pubs\nGoals")) %>% 
+  mutate(status3 = case_when(status == "not young no pubs/events" ~ "Non-Early Career PI",
+                             status == "young no pubs/events" ~ "Early Career PI",
+                             status == "not young pubs/events" ~ "Non-Early Career PI",
+                             TRUE ~ "Early Career PI")) %>% 
+  filter(status2 == "Event/Pubs\nGoals") %>% 
+  
+  group_by(proj_year, status3, gender, area_name, statuse_project) %>% count() %>% ungroup() %>%
+  group_by(proj_year, status3, gender, area_name) %>% 
+  mutate(sh = 100 * n / sum(n)) %>% 
+  filter(statuse_project == "accepted") %>% 
+  select(-n) %>% 
+  pivot_wider(names_from = gender, values_from = sh) %>% 
+  mutate(gap = round(male - female, digits = 2),
+         color = case_when(gap > 0 ~ "gender gap in favor of men",
+                           gap == 0 ~ "equal",
+                           TRUE ~ "gender gap in favor of women")) %>% ungroup() %>%   
+  mutate(color = factor(color, levels = c("gender gap in favor of men", 
+                                          "gender gap in favor of women",
+                                          "equal"))) %>% 
+  
+  ggplot() +
+  geom_hline(yintercept = 0, linetype = 'solid', col = 'black', size = 0.2) +
+  geom_col(aes(x = proj_year, y = gap, fill = color), color = "black", size = 0.1) + 
+  geom_point(data = equal, aes(x = proj_year, y = gap), 
+             fill = "black",
+             color = "black", size = 1.2, shape = 22, show.legend = F) +
+  geom_point(data = equal, aes(x = proj_year, y = gap, fill = color), 
+             color = "#91C45A", size = 1.1, shape = 22, show.legend = F) + 
+  #geom_point(data = tibble(x = c(2006, 2006), y = c(-50, 50)), aes(x, y), color = "white") +
+  facet_grid(status3 ~ area_name, labeller = label_wrap_gen(20)) +
+  scale_fill_manual(values = col_gender3) +
+  scale_x_continuous(breaks = c(1995, 2005, 2015)) +
+  #scale_y_continuous(breaks = c(-40, -20, 0, 20, 40)) +
+  labs(y = "Gender Gap (pp)", color = "Мore supported:") +
+  theme_bw() +
+  theme(legend.title = element_blank(),
+        legend.position = "top",
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 8),
+        axis.text.x = element_text(size = 8, angle = 0, vjust = 0.5),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill = NA), 
+        strip.text = element_text(colour = 'black', size = 8))
+   
+```
+
