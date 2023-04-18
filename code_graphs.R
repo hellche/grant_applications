@@ -1,23 +1,25 @@
----
-title: "Code for Graphs for STI 2023 Poster"
-author: "Elena Chechik"
-#output: html_document
-org: "European University at St. Petersburg"
----
+# title: "Code for Graphs for STI 2023 Poster"
+# author: "Elena Chechik"
+# org: "European University at St. Petersburg"
 
-```{r packages}
+
+# Just run the code to get Figs for
+# Uncovering Barriers for Women in Russian Grant Funding: Rejected and Supported Grant Applications
+
+# Data will be downloaded from https://osf.io
+
+  
+# packages
 library(tidyverse)
 library(patchwork)
-```
 
-```{r data}
+# data
 grants_data <- read.csv(url("https://osf.io/qm2ez/download")) %>% 
   filter(area_name != "unknown") %>% 
   mutate(area_name = case_when(area_name == "IT" ~ "Information Technology",
                                TRUE ~ area_name))
-```
 
-```{r pallets}
+# pallets
 col_gender <- c("#ffe043","#b3b3b3")
 col_gender2 <- c("#b3b3b3","#ffe043")
 
@@ -28,13 +30,13 @@ col_8 <- c("#ADD8E6", "#8cb3d9", "#C19AD6", "#FFB6C1",
 
 areas <- grants_data %>% 
   count(area_name) %>% arrange(desc(n)) %>% pull(area_name) 
-          
+
 myColors_8 <- setNames(col_8, areas)
-```
+
+# Figures
 
 ### Figure 1: Grants applications by research fields (1994-2016).
 
-```{r}
 lvls <- grants_data %>% 
   group_by(area_name) %>% count() %>% ungroup() %>% 
   arrange(desc(n)) %>% pull(area_name)
@@ -83,11 +85,10 @@ ggsave(filename = "figs/fig_1_sti23.png",
        family = "Helvetica",
        units = "mm", dpi = 300,  width = 184,
        height = 72)
-```
+
 
 ### Figure 2: Proportion of women among grant applicants by field.
 
-```{r}
 grants_data %>% 
   filter(gender != "unknown") %>% 
   group_by(proj_year, gender, area_name) %>% count %>% ungroup() %>% 
@@ -119,11 +120,10 @@ ggsave(filename = "figs/fig_2_sti23.png",
        family = "Helvetica",
        units = "mm", dpi = 300,  width = 184,
        height = 95)
-```
+
 
 ### Figure 3: Proportion of supported applications by gender.
 
-```{r}
 sgnf <-  data.frame(x = c(0.7, 1.7, 2.7, 3.7, 4.7, 5.7, 6.7, 7.7),
                     xend = c(1.3, 2.3, 3.3, 4.3, 5.3, 6.3, 7.3, 8.3),
                     y = rep(55, 8),
@@ -178,7 +178,7 @@ grants_data %>%
   scale_fill_manual(values = col_gender) +
   labs(fill = "",
        y = "Supported Applications (%)") + #,
-       #caption = "\nPearson's Chi-squared test; NS. — not significant, * — p < 0.05, ** — p < 0.01, *** — p < 0.001") +
+  #caption = "\nPearson's Chi-squared test; NS. — not significant, * — p < 0.05, ** — p < 0.01, *** — p < 0.001") +
   theme_bw() +
   theme(legend.title = element_blank(),
         legend.position = "top",
@@ -192,11 +192,9 @@ ggsave(filename = "figs/fig_3_sti23.png",
        family = "Helvetica",
        units = "mm", dpi = 300,  width = 184,
        height = 84)
-```
 
 ### Figure 4: Gender disparity in the proportion of supported applications by field.
 
-```{r}
 grants_data %>% 
   filter(gender != "unknown") %>% 
   filter(area_name != "NA") %>% 
@@ -234,11 +232,9 @@ ggsave(filename = "figs/fig_4_sti23.png",
        family = "Helvetica",
        units = "mm", dpi = 300,  width = 184,
        height = 110)
-```
 
 ### Figure 6: Proportion of women among grant applicants by grant type (2005-2016).
 
-```{r}
 four_first <- c("Biology & Medical Sciences", 
                 "Chemistry & Material Sciences", 
                 "Earth Sciences", "Engineering")
@@ -267,7 +263,7 @@ p1 <- dat %>%
   filter(area_name %in% four_first) %>% 
   ggplot(aes(x = status3, y = sh, fill = status3)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.5), 
-          color = "black", size = 0.15, alpha = 0.8) +
+           color = "black", size = 0.15, alpha = 0.8) +
   geom_hline(yintercept = 50, linetype = 'dashed', size = 0.2, col = 'black') +
   facet_grid(area_name ~ status2, labeller = label_wrap_gen(6)) + 
   scale_fill_manual(values = col_gap) +
@@ -315,4 +311,4 @@ ggsave(filename = "figs/fig_6_sti23.png",
        family = "Helvetica",
        units = "mm", dpi = 300,  width = 184,
        height = 120)
-```
+

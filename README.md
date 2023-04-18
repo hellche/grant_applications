@@ -1,13 +1,21 @@
-## Uncovering Barriers for Women in Russian Grant Funding: Rejected and Supported Grant Applications, 
+## Uncovering Barriers for Women in Russian Grant Funding: Rejected and Supported Grant Applications
 
-Poster Paper for STI 2023: https://hellche.github.io/grant_applications/files/Chechik_STI2023_Poster.pdf
+#### STI 2023 Conference
+
+Poster Paper: https://hellche.github.io/grant_applications/files/Chechik_STI2023_Poster.pdf
 
 Supplementary Materials: https://hellche.github.io/grant_applications/
 
-**Data**
+### Summary
 
-Russian Foundation for Basic Research (RFBR), 1994-2016
+This project investigates the barriers faced by women in obtaining grant funding in Russia, using data from the Russian Foundation for Basic Research from 1994-2016. The goal is to identify patterns of funding outcomes and applicant characteristics that may contribute to gender disparities.
 
-Example of applicant's card \[ru\]: https://www.rfbr.ru/rffi/ru/project_search/o_1910847
+### Data
 
-Final dataset is posted on OSF: https://osf.io/qm2ez/
+The project uses grant application data from the Russian Foundation for Basic Research, which includes about 400,000 applications, spanning over two decades. An example of an applicant card can be found here: https://www.rfbr.ru/rffi/ru/project_search/o_1910847. The final dataset is posted on the Open Science Framework: https://osf.io/qm2ez/.
+
+### Code
+
+`code_graphs.R`: This script generates various graphs and visualizations used in the poster paper.
+
+`index.qmd`: This file renders the Supplementary Materials page, which includes additional information about the data and methods used in the project.
