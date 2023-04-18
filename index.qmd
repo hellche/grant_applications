@@ -1,9 +1,12 @@
 ---
-title: "Uncovering Barriers for Women in Russian Grant Funding. Rejected and Supported Grant Applications"
+# title: "Supplementary Materials"
 # author: "Elena Chechik"
 org: "Center for Institutional Analysis of Science & Education European University at St. Petersburg"
 ---
 
+### Supplementary Materials
+
+# Uncovering Barriers for Women in Russian Grant Funding: Rejected and Supported Grant Applications
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,  warning = FALSE, message =  FALSE)
@@ -14,27 +17,6 @@ library(tidyverse)
 library(table1)
 library(DT)
 library(kableExtra)
-
-# library(table1)
-# library(sjlabelled)
-# library(ggpubr)
-# library(ggridges)
-# library(ggsignif)
-# library(patchwork)
-# library(expss)
-# library(FactoMineR)
-# library(factoextra)
-# library(RColorBrewer)
-# library(stringr)
-# library(stringi)
-# library(tibble)
-# library(ggpmisc)
-# library(readxl)
-# library(DT)
-# library(wesanderson)
-# library(likert)
-# library(ggrepel)
-# library(kableExtra)
 ```
 
 ```{r pallets}
@@ -52,7 +34,7 @@ grants_data <- read.csv(url("https://osf.io/qm2ez/download")) %>%
 
 ```
 
-## Table S1. Gender assignment and number of grant applications by gender.
+### Table S1. Gender assignment and number of grant applications by gender.
 
 ```{r}
 #| fig-align: 'center'
@@ -75,15 +57,15 @@ kable(Tab_1,
 
 <br /> 
 
-## Figure S1. Gender assignment and number of grant applications by gender.
+### Figure S1. Gender disparity in the proportion of supported applications by grant type.
 
-### A. Non-Event/Pubs Goals
+#### A. Non-Event/Pubs Goals
 
 ```{r, fig.dim = c(10, 3.6)}
 #| fig-align: 'center'
 
 equal <- grants_data %>% 
-  #filter(proj_year >= 2005) %>% 
+  # filter(proj_year >= 2005) %>% 
   filter(area_name != "unknown") %>% 
   filter(gender != "unknown") %>% 
   mutate(status2 = case_when(status == "not young no pubs/events" ~ "Non-Event/Pubs\nGoals",
@@ -161,7 +143,7 @@ grants_data %>%
    
 ```
 
-### B. Event/Pubs Goals
+#### B. Event/Pubs Goals
 
 ```{r, fig.dim = c(10, 3.6)}
 #| fig-align: 'center'
@@ -233,7 +215,7 @@ grants_data %>%
   facet_grid(status3 ~ area_name, labeller = label_wrap_gen(20)) +
   scale_fill_manual(values = col_gender3) +
   scale_x_continuous(breaks = c(1995, 2005, 2015)) +
-  #scale_y_continuous(breaks = c(-40, -20, 0, 20, 40)) +
+  # scale_y_continuous(breaks = c(-40, -20, 0, 20, 40)) +
   labs(y = "Gender Gap (pp)", color = "Мore supported:") +
   theme_bw() +
   theme(legend.title = element_blank(),

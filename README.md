@@ -12,7 +12,7 @@ This project investigates the barriers faced by women in obtaining grant funding
 
 ### Data
 
-The project uses grant application data from the Russian Foundation for Basic Research, which includes about 400,000 applications, spanning over two decades. An example of an applicant card can be found here: https://www.rfbr.ru/rffi/ru/project_search/o_1910847. The final dataset is posted on the Open Science Framework: https://osf.io/qm2ez/.
+The project uses grant application data from the Russian Foundation for Basic Research, which includes about 400,000 applications, spanning over two decades. An example of an applicant card can be found here: https://www.rfbr.ru/rffi/ru/project_search/o_1910847. The final dataset is posted on the Open Science Framework: https://osf.io/3xv9a/.
 
 ### Code
 
