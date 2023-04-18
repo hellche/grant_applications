@@ -2,7 +2,7 @@
 
 #### STI 2023 Conference
 
-Poster Paper: https://hellche.github.io/grant_applications/files/Chechik_STI2023_Poster.pdf
+Poster Paper: https://hellche.github.io/grant_applications/files/STI2023_Poster_Chechik.pdf
 
 Supplementary Materials: https://hellche.github.io/grant_applications/
 
