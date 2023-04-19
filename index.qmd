@@ -149,7 +149,7 @@ grants_data %>%
 #| fig-align: 'center'
 
 equal <- grants_data %>% 
-  filter(proj_year >= 2005) %>% 
+  #filter(proj_year >= 2005) %>% 
   filter(area_name != "unknown") %>% 
   filter(gender != "unknown") %>% 
   mutate(status2 = case_when(status == "not young no pubs/events" ~ "Non-Event/Pubs\nGoals",
@@ -176,7 +176,7 @@ equal <- grants_data %>%
 
   
 grants_data %>% 
-  filter(proj_year >= 2005) %>% 
+  # filter(proj_year >= 2005) %>% 
   filter(area_name != "unknown") %>% 
   filter(gender != "unknown") %>% 
   mutate(status2 = case_when(status == "not young no pubs/events" ~ "Non-Event/Pubs\nGoals",
