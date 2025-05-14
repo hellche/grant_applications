@@ -12,7 +12,9 @@ This project investigates the barriers faced by women in obtaining grant funding
 
 ### Data
 
-The project uses grant application data from the Russian Foundation for Basic Research, which includes about 400,000 applications, spanning over two decades. An example of an applicant card can be found here: https://www.rfbr.ru/rffi/ru/project_search/o_1910847. \[[jpeg sample](https://github.com/hellche/grant_applications/blob/main/files/application_card_sample.png)\]
+The project uses grant application data from the Russian Foundation for Basic Research, which includes about 400,000 applications, spanning over two decades. 
+An example of an applicant card was previously available here https://www.rfbr.ru/rffi/ru/project_search/o_1910847, but the page is no longer accessible.
+\[[jpeg sample](https://github.com/hellche/grant_applications/blob/main/files/application_card_sample.png)\]
 
 ### Code
 
